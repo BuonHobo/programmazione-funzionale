@@ -199,10 +199,36 @@ let rec is_alternato colass = function
     (colore a colass <> colore b colass) && is_alternato colass (b::rest) 
   | _-> true
 
-let rec path_to x colass t=
+let path_to x colass t=
   List.find (is_alternato colass) (percorsi_foglia x t)
 
-type 'a* 'b btree= Empty | Btr of ('a*'b) * ('a*'b) btree * ('a*'b) btree
+let path_to x colass = function
+  Empty -> failwith "Empty_tree"
+  | Tr(y,l,r) -> 
+    let rec aux col_prec = function
+      Empty -> failwith "Not_found"
+
+      | Tr(z,Empty,Empty)->
+        let z_col= colore z colass in
+          if z_col <> col_prec && x=z
+          then [z]
+          else failwith "Invalid_path"
+
+      | Tr(z,l,r) -> 
+        let z_col= colore z colass in
+          if z_col = col_prec
+          then failwith "Invalid_path"
+          else
+            z::
+            try aux z_col l
+            with _-> aux z_col r
+
+    in 
+      let x_col= colore x colass in
+      try aux x_col l
+      with _-> aux x_col r
+
+type ('a,'b )btree= Empty | Btr of ('a*'b) * ('a,'b )btree* ('a,'b )btree
 
 let key = function
   (Btr((k,_),_,_)) -> k
@@ -210,4 +236,4 @@ let key = function
 
 let rec abr_check = function
   Empty -> true
-  | Btr((k,_),l,r) -> k>key l && k<label r && abr_check r && abr_check l
+  | Btr((k,_),l,r) -> k>key l && k<key r && abr_check r && abr_check l
