@@ -137,7 +137,7 @@ let esiste_mapping t1 t2=
 	if not (stessa_struttura t1 t2)
 	then false
 	else 
-		is_func (zip(preordine t1) (preordine t2))
+		is_func (List.combine (preordine t1) (preordine t2))
 
 let rec path p= function
   Empty-> []
@@ -184,3 +184,30 @@ let colore x colass=
 
 let colore x colass=
   fst (List.find (function _,lst -> List.mem x lst) colass)
+
+let rec percorsi_foglia x = function
+  Empty  -> failwith "Not_found"
+  | Tr(y,Empty,Empty) ->
+    if x=y
+    then [[x]]
+    else failwith "Not_found"
+  | Tr(y,l,r) ->
+    List.map (List.cons y) ((percorsi_foglia x l) @ (percorsi_foglia x r))
+
+let rec is_alternato colass = function
+  |a::b::rest -> 
+    (colore a colass <> colore b colass) && is_alternato colass (b::rest) 
+  | _-> true
+
+let rec path_to x colass t=
+  List.find (is_alternato colass) (percorsi_foglia x t)
+
+type 'a* 'b btree= Empty | Btr of ('a*'b) * ('a*'b) btree * ('a*'b) btree
+
+let key = function
+  (Btr((k,_),_,_)) -> k
+  | _ -> failwith ""
+
+let rec abr_check = function
+  Empty -> true
+  | Btr((k,_),l,r) -> k>key l && k<label r && abr_check r && abr_check l
