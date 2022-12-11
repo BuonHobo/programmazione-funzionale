@@ -1,4 +1,41 @@
+type expr =
+Int of int
+| Var of string
+| Sum of expr * expr
+| Diff of expr * expr
+| Mult of expr * expr
+| Div of expr * expr
+
+let rec subexpr e1 e2=
+	e1=e2 ||
+	match e1 with
+		Sum(e1a,e1b) -> subexpr e1a e2 || subexpr e1b e2
+		|Diff(e1a,e1b) -> subexpr e1a e2 || subexpr e1b e2
+		|Mult(e1a,e1b) -> subexpr e1a e2 || subexpr e1b e2
+		|Div(e1a,e1b) -> subexpr e1a e2 || subexpr e1b e2
+		|_->false
+
+let rec subst_in_expr e1 x e2=
+	match e1 with
+		Var(y) when x=y-> e2
+		|Sum(e1a,e1b) -> Sum(subst_in_expr e1a x e2,subst_in_expr e1b x e2)
+		|Diff(e1a,e1b) -> Diff(subst_in_expr e1a x e2,subst_in_expr e1b x e2)
+		|Mult(e1a,e1b) ->Mult(subst_in_expr e1a x e2,subst_in_expr e1b x e2)
+		|Div(e1a,e1b) -> Div(subst_in_expr e1a x e2,subst_in_expr e1b x e2)
+		|_->e1
+
 type 'a tree = Empty | Tr of 'a * 'a tree * 'a tree
+
+let rec reflect=function
+	Empty->Empty
+	| Tr(x,l,r)->Tr(x,r,l)
+
+let fulltree n=
+	let rec aux piano x=
+		if piano<n
+		then Tr(x,aux (piano+1)(2*x),aux (piano+1) (2*x+1))
+		else Empty
+	in aux 0 1
 
 let rec take n = function
   | [] -> []
@@ -79,6 +116,8 @@ let rec foglie_costi = function
   | Tr (x, l, r) ->
       List.map (function y, c -> (y, x + c)) (foglie_costi l @ foglie_costi r)
 
+
+(*
 type expr =
   | Jolly
   | Int of int
@@ -100,6 +139,8 @@ let rec pattern_matching e p =
   | Div (e1, e2), Div (p1, p2) ->
       pattern_matching e1 p1 && pattern_matching e2 p2
   | _ -> e = p
+*)
+
 
 let rec max_common_subtree t1 t2 =
   match (t1, t2) with
@@ -213,18 +254,15 @@ let rec get_leftmost = function
   | Tr (x, l, r) -> ( try get_leftmost l with _ -> Tr (x, l, r))
 
 let key = function Tr ((k, _), _, _) -> k | _ -> failwith "empty node"
+let value = function Tr ((_, v), _, _) -> v | _ -> failwith "empty node"
 
 let rec abr_check = function
-  | Empty ->true 
+  | Empty -> true
   | Tr ((k, _), Empty, Empty) -> true
   | Tr ((k, _), l, Empty) ->
-      k > key l 
-      && k > key (get_rightmost l) 
-      && abr_check l
+      k > key l && k > key (get_rightmost l) && abr_check l
   | Tr ((k, _), Empty, r) ->
-      k < key r 
-      && k < key (get_leftmost r) 
-      && abr_check r
+      k < key r && k < key (get_leftmost r) && abr_check r
   | Tr ((k, _), l, r) ->
       k > key l
       && k < key r
@@ -232,32 +270,60 @@ let rec abr_check = function
       && k < key (get_leftmost r)
       && abr_check l && abr_check r
 
-let rec abr_search t chiave= 
+let rec abr_search t chiave =
   match t with
-    Empty->failwith "not found"
-    | Tr((k,v),l,r)->
-      if k=chiave
-      then v 
-      else 
-        if chiave>k
-        then abr_search r chiave
-        else abr_search l chiave
+  | Empty -> failwith "not found"
+  | Tr ((k, v), l, r) ->
+      if k = chiave then v
+      else if chiave > k then abr_search r chiave
+      else abr_search l chiave
 
-let rec abr_update t (chiave,new_v) =
+let rec abr_update t (chiave, new_v) =
   match t with
-    Empty->Tr((chiave,new_v),Empty,Empty)
-    | Tr((k,v),l,r) ->
-      if k=chiave
-      then Tr((k,new_v),l,r)
-      else 
-        if chiave>k
-        then Tr((k,v),l,abr_update r (chiave,new_v))
-        else Tr((k,v),abr_update l (chiave,new_v),r)
+  | Empty -> Tr ((chiave, new_v), Empty, Empty)
+  | Tr ((k, v), l, r) ->
+      if k = chiave then Tr ((k, new_v), l, r)
+      else if chiave > k then Tr ((k, v), l, abr_update r (chiave, new_v))
+      else Tr ((k, v), abr_update l (chiave, new_v), r)
 
 let rec abr_delmin = function
-  Empty -> failwith "empty tree"
-  | Tr((k,v),l,r) ->
-    try
-      let min_k, new_l= abr_delmin l in
-      (min_k,Tr((k,v),new_l,r))
-    with _-> (k, r)
+  | Empty -> failwith "empty tree"
+  | Tr ((k, v), l, r) -> (
+      try
+        let min_k, new_l = abr_delmin l in
+        (min_k, Tr ((k, v), new_l, r))
+      with _ -> (k, r))
+
+let rec abr_delete t chiave =
+  match t with
+  | Empty -> Empty
+  | Tr ((k, _), Empty, Empty) -> Empty
+  | Tr ((k, v), l, Empty) ->
+      if chiave = k then l else Tr ((k, v), abr_delete l chiave, Empty)
+  | Tr ((k, v), Empty, r) ->
+      if chiave = k then r else Tr ((k, v), Empty, abr_delete r chiave)
+  | Tr ((k, v), l, r) ->
+      if chiave = k then
+        let child = get_leftmost r in
+        Tr ((key child, value child), l, abr_delete r (key child))
+      else if chiave > k then Tr ((k, v), l, abr_delete r chiave)
+      else Tr ((k, v), abr_delete l chiave, r)
+
+let rec abr_insert tr element=
+	match tr with
+	Empty -> Tr(element,Empty,Empty)
+	| Tr(x,l,r) when element<x-> Tr(x,abr_insert l element,r)
+	| Tr(x,l,r) -> Tr(x,l,abr_insert r element)
+
+let build_abr lst=
+	let rec aux tr=function
+		[]->tr
+		|a::rest -> aux (abr_insert tr a) rest
+	in aux Empty lst
+
+let rec inorder = function
+	Empty -> []
+	| Tr(x,l,r) -> (inorder l) @ (x::inorder r)
+
+let tree_sort lst=
+	inorder (build_abr lst)
