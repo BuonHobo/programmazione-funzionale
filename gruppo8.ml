@@ -172,8 +172,7 @@ let rec is_func = function
       try b = List.assoc a rest && is_func rest with _ -> is_func rest)
 
 let esiste_mapping t1 t2 =
-  if not (stessa_struttura t1 t2) then false
-  else is_func (List.combine (preordine t1) (preordine t2))
+  stessa_struttura t1 t2 && is_func (List.combine (preordine t1) (preordine t2))
 
 let rec path p = function
   | Empty -> []

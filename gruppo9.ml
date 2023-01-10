@@ -48,6 +48,11 @@ let rec listaGuida lst (Tr (x, trees)) =
   match lst with
   | [] -> Tr (x, trees)
   | a :: rest -> listaGuida rest (List.nth trees a)
+  
+let rec cerca_foglia guida (Tr(x,lst))=
+	match lst with
+		[]-> x
+		| _-> cerca_foglia guida (List.nth lst (List.assoc x guida-1))
 
 let rec maxl = function
   | [] -> failwith "empty list"
@@ -213,7 +218,7 @@ let ramo_colorato x colass (Tr(y,trees))=
 			with _-> aux2 cammino ultimo rest
 
 	in aux2 [y] (colore y colass) trees 
-
+		
 let leaf x = Tr (x, [])
 
 let t =
