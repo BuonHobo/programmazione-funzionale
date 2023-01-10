@@ -64,7 +64,7 @@ type 'a graph_lista = 'a list * ('a*'a) list
 let visita_vicini grafo n=
     let rec aux_nodo nodo visitati=
         if List.mem nodo visitati
-        then List.rev (nodo::visitati)
+        then visitati
         else aux_vicini (vicini grafo nodo) (nodo::visitati)
     and aux_vicini nodi visitati=
         match nodi with
