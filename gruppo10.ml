@@ -245,3 +245,17 @@ let path_n_p grafo p n start =
     | a :: rest -> (
         try aux_nodo a visitati k with _ -> aux_prossimi rest visitati k) in
   aux_nodo start [] n
+
+let depth_limited grafo start goal depth=
+  let rec aux_nodo nodo n=
+    if n<0
+    then failwith "fail"
+    else
+      if nodo=goal 
+      then [nodo]
+      else nodo::aux_prossimi (prossimi grafo nodo) (n-1)
+  and aux_prossimi nodi n=
+    match nodi with
+      []-> failwith "fail"
+      | a::rest -> try aux_nodo a n with _-> aux_prossimi rest n
+  in aux_nodo start depth
