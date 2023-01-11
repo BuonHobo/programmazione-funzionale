@@ -1,0 +1,3 @@
+break-before-in = auto
+break-cases=nested
+if-then-else= keyword-first
