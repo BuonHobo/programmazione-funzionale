@@ -24,8 +24,20 @@ let test_connessi grafo n m =
     | [] ->
         false
     | a :: rest ->
-        aux_nodo a visitati || aux_prossimi rest visitati in
+        aux_nodo a visitati || aux_prossimi rest visitati
+  in
   aux_prossimi (prossimi grafo n) [ n ]
+
+let test_connessi_migliorato grafo n m =
+  let rec aux visitati = function
+    | a :: rest when List.mem a visitati ->
+        aux visitati rest
+    | a :: rest ->
+        a = m || aux (a :: visitati) (rest @ prossimi grafo a)
+    | [] ->
+        false
+  in
+  aux [] [ n ]
 
 let esiste_ciclo grafo n =
   let rec aux_nodo nodo visitati =
@@ -37,8 +49,20 @@ let esiste_ciclo grafo n =
     | [] ->
         false
     | a :: rest ->
-        aux_nodo a visitati || aux_prossimi rest visitati in
+        aux_nodo a visitati || aux_prossimi rest visitati
+  in
   aux_prossimi (prossimi grafo n) [ n ]
+
+let esiste_ciclo grafo n =
+  let rec aux visitati = function
+    | a :: rest when List.mem a visitati ->
+        aux visitati rest
+    | a :: rest ->
+        a = n || aux (a :: visitati) (rest @ prossimi grafo a)
+    | [] ->
+        false
+  in
+  aux [] (prossimi grafo n)
 
 let ciclo grafo n =
   let rec aux_nodo nodo visitati =
@@ -52,7 +76,8 @@ let ciclo grafo n =
     | [] ->
         failwith "Not found"
     | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
+        try aux_nodo a visitati with _ -> aux_prossimi rest visitati)
+  in
   aux_prossimi (prossimi grafo n) [ n ]
 
 (* Per grafo_connesso basta far partire una visita da un nodo qualsiasi
@@ -70,8 +95,20 @@ let visita_vicini grafo n =
     | [] ->
         visitati
     | a :: rest ->
-        aux_vicini rest (aux_nodo a visitati) in
+        aux_vicini rest (aux_nodo a visitati)
+  in
   aux_nodo n []
+
+let visita_vicini_migliore grafo n =
+  let rec aux visitati = function
+    | [] ->
+        visitati
+    | a :: rest when List.mem a visitati ->
+        aux visitati rest
+    | a :: rest ->
+        aux (a :: visitati) (rest @ vicini grafo a)
+  in
+  aux [] [ n ]
 
 let grafo_connesso (nodi, archi) =
   match nodi with
@@ -102,7 +139,8 @@ let cammino grafo lst n m =
     | [] ->
         failwith "non trovato"
     | a :: rest -> (
-        try aux_nodo a ammessi with _ -> aux_prossimi rest ammessi) in
+        try aux_nodo a ammessi with _ -> aux_prossimi rest ammessi)
+  in
   aux_nodo n lst
 
 let hamiltoniano grafo =
@@ -150,7 +188,8 @@ let colori_alterni grafo assoc start goal =
         failwith "not found"
     | a :: rest -> (
         try aux_nodo a visitati ultimo
-        with _ -> aux_prossimi rest visitati ultimo) in
+        with _ -> aux_prossimi rest visitati ultimo)
+  in
   aux_prossimi (prossimi start) [ start ] (colore start)
 
 let rec connessi_in_glist grafi b c =
@@ -177,7 +216,8 @@ let cammino_con_nodi grafo n lst =
         failwith "non trovato"
     | a :: rest -> (
         try aux_nodo a visitati da_visitare
-        with _ -> aux_prossimi rest visitati da_visitare) in
+        with _ -> aux_prossimi rest visitati da_visitare)
+  in
   aux_nodo n [] lst
 
 let is_primo n =
@@ -185,19 +225,18 @@ let is_primo n =
   aux 2
 
 let cammino_di_primi g start goal =
-  let rec aux_nodo nodo visitati =
-    if (not (is_primo nodo)) || List.mem nodo visitati
-    then failwith "non valido"
-    else if nodo = goal
-    then List.rev (nodo :: visitati)
-    else aux_prossimi (prossimi g nodo) (nodo :: visitati)
-  and aux_prossimi nodi visitati =
-    match nodi with
+  let rec aux_prossimi visitati = function
     | [] ->
         failwith "not found"
-    | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
-  aux_nodo start []
+    | nodo :: rest when List.mem nodo visitati || not (is_primo nodo) ->
+        aux_prossimi visitati rest
+    | nodo :: rest when nodo = goal ->
+        List.rev (nodo :: visitati)
+    | nodo :: rest -> (
+        try aux_prossimi (nodo :: visitati) (prossimi g nodo)
+        with _ -> aux_prossimi visitati rest)
+  in
+  aux_prossimi [] [ start ]
 
 type form =
   | Prop of string
@@ -225,7 +264,8 @@ let non_contradictory_path grafo start goal =
     | [] ->
         failwith "non trovato"
     | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
+        try aux_nodo a visitati with _ -> aux_prossimi rest visitati)
+  in
 
   aux_nodo start []
 
@@ -243,19 +283,49 @@ let path_n_p grafo p n start =
     | [] ->
         failwith "non trovato"
     | a :: rest -> (
-        try aux_nodo a visitati k with _ -> aux_prossimi rest visitati k) in
+        try aux_nodo a visitati k with _ -> aux_prossimi rest visitati k)
+  in
   aux_nodo start [] n
 
-let depth_limited grafo start goal depth=
-  let rec aux_nodo nodo n=
-    if n<0
+(*
+13. (Dal compito d'esame di giugno 2011). Definire una funzione path_n_p:
+'a graph -> ('a -> bool) -> int -> 'a -> 'a list, che, applicata
+a un grafo orientato g, un predicato p: 'a -> bool, un intero non ne-
+gativo n e un nodo start, riporti, se esiste, un cammino non ciclico da
+start fino a un nodo x che soddisfa p e che contenga esattamente n nodi
+che soddisfano p (incluso x). La funzione solleverà un'eccezione se un tale
+cammino non esiste.
+*)
+
+let path_n_p grafo p n start =
+  let rec aux visitati k = function
+    | [] ->
+        failwith "fail"
+    | nodo :: rest when List.mem nodo visitati ->
+        aux visitati (if p nodo then k - 1 else k) rest
+    | nodo :: rest when k = 1 && p nodo ->
+        List.rev (nodo :: visitati)
+    | nodo :: rest -> (
+        try
+          aux (nodo :: visitati)
+            (if p nodo then k - 1 else k)
+            (prossimi grafo nodo)
+        with _ -> aux visitati (if p nodo then k - 1 else k) rest)
+  in
+  aux [] n [ start ]
+
+let depth_limited grafo start goal depth =
+  let rec aux_nodo nodo n =
+    if n < 0
     then failwith "fail"
-    else
-      if nodo=goal 
-      then [nodo]
-      else nodo::aux_prossimi (prossimi grafo nodo) (n-1)
-  and aux_prossimi nodi n=
+    else if nodo = goal
+    then [ nodo ]
+    else nodo :: aux_prossimi (prossimi grafo nodo) (n - 1)
+  and aux_prossimi nodi n =
     match nodi with
-      []-> failwith "fail"
-      | a::rest -> try aux_nodo a n with _-> aux_prossimi rest n
-  in aux_nodo start depth
+    | [] ->
+        failwith "fail"
+    | a :: rest -> (
+        try aux_nodo a n with _ -> aux_prossimi rest n)
+  in
+  aux_nodo start depth

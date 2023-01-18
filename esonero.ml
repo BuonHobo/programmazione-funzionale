@@ -10,7 +10,8 @@ let bin k tr =
         (List.rev (x :: cammino), x, peso + x)
     | Tr (x, lc, rc) -> (
         try aux (peso + x) (x :: cammino) lc
-        with _ -> aux (peso + x) (x :: cammino) rc) in
+        with _ -> aux (peso + x) (x :: cammino) rc)
+  in
   aux 0 [] tr
 
 let t =
@@ -35,7 +36,8 @@ let ntr k tr =
     | [] ->
         failwith "ntr"
     | a :: rest -> (
-        try aux_nodo peso cammino a with _ -> aux_lista peso cammino rest) in
+        try aux_nodo peso cammino a with _ -> aux_lista peso cammino rest)
+  in
   aux_nodo 0 [] tr
 
 let leaf x = Tr (x, [])

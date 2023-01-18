@@ -41,6 +41,7 @@ let apri n =
     | [] ->
         failwith "non trovato"
     | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
+        try aux_nodo a visitati with _ -> aux_prossimi rest visitati)
+  in
 
   aux_nodo (start n) []

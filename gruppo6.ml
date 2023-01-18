@@ -29,7 +29,8 @@ let partition p lst =
     | [] ->
         (yes, no)
     | a :: rest ->
-        if p a then aux (a :: yes) no rest else aux yes (a :: no) rest in
+        if p a then aux (a :: yes) no rest else aux yes (a :: no) rest
+  in
   aux [] [] lst
 
 let pairwith y lst = List.map (fun a -> (y, a)) lst
@@ -81,7 +82,8 @@ let find_2 x lst =
     | [] ->
         failwith "NotFound"
     | a :: rest ->
-        if a <> x then aux (a :: prima) rest else (prima, x :: rest) in
+        if a <> x then aux (a :: prima) rest else (prima, x :: rest)
+  in
   aux [] lst
 
 let spezza x lst =

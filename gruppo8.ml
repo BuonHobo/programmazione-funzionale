@@ -44,7 +44,8 @@ let fulltree n =
   let rec aux piano x =
     if piano < n
     then Tr (x, aux (piano + 1) (2 * x), aux (piano + 1) ((2 * x) + 1))
-    else Empty in
+    else Empty
+  in
   aux 0 1
 
 let rec take n = function
@@ -292,7 +293,8 @@ let path_to x colass = function
             let z_col = colore z colass in
             if z_col = col_prec
             then failwith "Invalid_path"
-            else z :: (try aux z_col l with _ -> aux z_col r) in
+            else z :: (try aux z_col l with _ -> aux z_col r)
+      in
 
       let x_col = colore x colass in
       try aux x_col l with _ -> aux x_col r)
@@ -392,7 +394,8 @@ let build_abr lst =
     | [] ->
         tr
     | a :: rest ->
-        aux (abr_insert tr a) rest in
+        aux (abr_insert tr a) rest
+  in
   aux Empty lst
 
 let rec inorder = function

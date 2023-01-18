@@ -148,7 +148,8 @@ let ramo_da_lista tr lst k =
           if List.mem x lst && not (List.mem x cammino)
           then aux1 cammino (Tr (x, trees))
           else failwith "Not_found"
-        with _ -> aux2 cammino rest) in
+        with _ -> aux2 cammino rest)
+  in
 
   aux1 [] tr
 
@@ -187,7 +188,8 @@ let ramo_di_primi tr =
     | [] ->
         failwith "Not_found"
     | a :: rest -> (
-        try aux1 a with _ -> aux2 rest) in
+        try aux1 a with _ -> aux2 rest)
+  in
   aux1 tr
 
 (*
@@ -211,7 +213,8 @@ let path_non_pred p tr =
     | [] ->
         failwith "Not_found"
     | a :: rest -> (
-        try aux1 cammino a with _ -> aux2 cammino rest) in
+        try aux1 cammino a with _ -> aux2 cammino rest)
+  in
   aux1 [] tr
 
 let rec same_structure (Tr (_, lst1)) (Tr (_, lst2)) =
@@ -253,7 +256,8 @@ let ramo_colorato x colass (Tr (y, trees)) =
     | [] ->
         failwith "Not_found"
     | a :: rest -> (
-        try aux1 cammino ultimo a with _ -> aux2 cammino ultimo rest) in
+        try aux1 cammino ultimo a with _ -> aux2 cammino ultimo rest)
+  in
 
   aux2 [ y ] (colore y colass) trees
 

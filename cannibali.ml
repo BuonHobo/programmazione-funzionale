@@ -6,7 +6,8 @@ let initial = ([ Miss; Miss; Miss; Cann; Cann; Cann; Barca ], [])
 
 let actions =
   let elems =
-    [ [ Miss ]; [ Cann ]; [ Miss; Cann ]; [ Miss; Miss ]; [ Cann; Cann ] ] in
+    [ [ Miss ]; [ Cann ]; [ Miss; Cann ]; [ Miss; Miss ]; [ Cann; Cann ] ]
+  in
   List.map (function x -> From_left x) elems
   @ List.map (function x -> From_right x) elems
 
@@ -19,7 +20,8 @@ let conta_oggetti sponda =
     | Cann :: rest ->
         aux miss (cann + 1) barca rest
     | Barca :: rest ->
-        aux miss cann (barca + 1) rest in
+        aux miss cann (barca + 1) rest
+  in
   aux 0 0 0 sponda
 
 let safe_sponda sponda =
@@ -76,7 +78,8 @@ let miss_cann () =
     | [] ->
         failwith "Not found"
     | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
+        try aux_nodo a visitati with _ -> aux_prossimi rest visitati)
+  in
   aux_nodo initial []
 
 let rec mosse n =
@@ -99,5 +102,6 @@ let miss_cann2 () =
     | [] ->
         failwith "Not found"
     | a :: rest -> (
-        try aux_nodo a visitati with _ -> aux_prossimi rest visitati) in
+        try aux_nodo a visitati with _ -> aux_prossimi rest visitati)
+  in
   aux_prossimi (from_sit2 initial) [ initial ]
